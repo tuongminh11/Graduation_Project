@@ -1,0 +1,5 @@
+../Libraries/homeplug_evse.c:18:6:HPGP_EVSE_Get_Address	1
+../Libraries/homeplug_evse.c:22:6:HPGP_EVSE_Get_Atten_Profile	1
+../Libraries/homeplug_evse.c:26:6:HPGP_EVSE_Respond_SLAC_PARM_CNF	1
+../Libraries/homeplug_evse.c:60:6:HPGP_EVSE_Respond_ATTEN_CHAR_IND	1
+../Libraries/homeplug_evse.c:83:6:HPGP_EVSE_Respond_SLAC_MATCH_CNF	1

@@ -1,0 +1,4 @@
+../Libraries/hmi.c:24:6:HMI_Compose_Pre_Charge_Parm	8
+../Libraries/hmi.c:48:6:HMI_Compose_Realtime_Data	5
+../Libraries/hmi.c:66:6:HMI_Compose_Status	7
+../Libraries/hmi.c:89:6:HMI_Evaluate_Setting_Data	5
