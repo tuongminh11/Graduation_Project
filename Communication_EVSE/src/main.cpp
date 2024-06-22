@@ -137,52 +137,48 @@ void readPICC()
     Serial.print(F("MIFARE_Read() failed: "));
     Serial.println(F(mfrc522.GetStatusCodeName(status)));
   }
-
+  // Halt PICC
+  mfrc522.PICC_HaltA();
+  // Stop encryption on PCD prepare to next read
+  mfrc522.PCD_StopCrypto1();
+  
   if (!isAuth)
   {
-    // check if user is full
     idTag = (char *)buffer;
-    // check if this is exist user
+    // buffer
     uint8_t data[] = {uint8_t(ID_TAG), 0x00, 0x00, 0x00, 0x01};
+    // authorize
+    authorize(idTag.c_str(), [](JsonObject payload) -> void
+              {
+      JsonObject idTagInfo = payload["idTagInfo"];
+      if (strcmp("Accepted", idTagInfo["status"] | "UNDEFINED")) { //strcmp == 0 mean equal
+        isAuth = 0;
+        Serial.println(F("authorize reject"));
+      }
+      else {
+        isAuth = 1;
+        Serial.println(F("authorize success"));
+      } }, nullptr, nullptr, nullptr);
+
+    Serial.println(idTag);
+    // check if this is exist user
     if (strcmp(idTag.c_str(), userDB[0].idTag) == 0)
     {
       // hanlde
       Serial.print(F("exist user 1, connectID: "));
-      authorize(idTag.c_str(), [](JsonObject payload) -> void
-                {
-      JsonObject idTagInfo = payload["idTagInfo"];
-      uint8_t data[] = {uint8_t(ID_TAG), 0x00, 0x00, 0x00, 0x01};
-      if (strcmp("Accepted", idTagInfo["status"] | "UNDEFINED")) { //strcmp == 0 mean equal
-        isAuth = 0;
-        Serial.println(F("authorize 1 reject"));
-      }
-      else {
-        isAuth = 1;
-        Serial.println(F("authorize 1 success"));
-        data[3] = userDB[0].connectorID;
-        data[4] = 1;
-        sendData(data);
-      } }, nullptr, nullptr, nullptr);
+      Serial.println(userDB[0].connectorID);
+      data[3] = userDB[0].connectorID;
+      data[4] = 1;
+      sendData(data);
     }
     else if (strcmp(idTag.c_str(), userDB[1].idTag) == 0)
     {
       // hanlde
       Serial.print(F("exist user 2, connectID: "));
-      authorize(idTag.c_str(), [](JsonObject payload) -> void
-                {
-      JsonObject idTagInfo = payload["idTagInfo"];
-      uint8_t data[] = {uint8_t(ID_TAG), 0x00, 0x01, 0x00, 0x01};
-      if (strcmp("Accepted", idTagInfo["status"] | "UNDEFINED")) { //strcmp == 0 mean equal
-        isAuth = 0;
-        Serial.println(F("authorize 2 reject"));
-      }
-      else {
-        isAuth = 1;
-        Serial.println(F("authorize 2 success"));
-        data[3] = userDB[1].connectorID;
-        data[4] = 1;
-        sendData(data);
-      } }, nullptr, nullptr, nullptr);
+      Serial.println(userDB[1].connectorID);
+      data[3] = userDB[1].connectorID;
+      data[4] = 1;
+      sendData(data);
     }
     // add new user
     else
@@ -191,43 +187,19 @@ void readPICC()
       {
         // hanlde
         Serial.println(F("new user 1"));
-        authorize(idTag.c_str(), [](JsonObject payload) -> void
-                  {
-        JsonObject idTagInfo = payload["idTagInfo"];
-        uint8_t data[] = {uint8_t(ID_TAG), 0x00, 0x00, 0x00, 0x01};
-        if (strcmp("Accepted", idTagInfo["status"] | "UNDEFINED")) { //strcmp == 0 mean equal
-          isAuth = 0;
-          Serial.println(F("authorize 1 reject"));
-        }
-        else {
-          isAuth = 1;
-          Serial.println(F("authorize user 1 success"));
-          memcpy(userDB[0].idTag, idTag.c_str(), idTag.length() + 1);
-          data[3] = userDB[0].connectorID;
-          data[4] = 1;
-          sendData(data);
-        } }, nullptr, nullptr, nullptr);
+        memcpy(userDB[0].idTag, idTag.c_str(), idTag.length() + 1);
+        data[3] = userDB[0].connectorID;
+        data[4] = 1;
+        sendData(data);
       }
       else if (userDB[1].connectorID == 255)
       {
         // hanlde
         Serial.println(F("new user 2"));
-        authorize(idTag.c_str(), [](JsonObject payload) -> void
-                  {
-        JsonObject idTagInfo = payload["idTagInfo"];
-        uint8_t data[] = {uint8_t(ID_TAG), 0x00, 0x01, 0x00, 0x01};
-        if (strcmp("Accepted", idTagInfo["status"] | "UNDEFINED")) { //strcmp == 0 mean equal
-          isAuth = 0;
-          Serial.println(F("authorize 2 reject"));
-        }
-        else {
-          isAuth = 1;
-          Serial.println(F("authorize user 2 success"));
-          memcpy(userDB[1].idTag, idTag.c_str(), idTag.length() + 1);
-          data[3] = userDB[1].connectorID;
-          data[4] = 1;
-          sendData(data);
-        } }, nullptr, nullptr, nullptr);
+        memcpy(userDB[1].idTag, idTag.c_str(), idTag.length() + 1);
+        data[3] = userDB[1].connectorID;
+        data[4] = 1;
+        sendData(data);
       }
       else
       {
@@ -240,10 +212,6 @@ void readPICC()
   {
     Serial.println(F("Already logged in"));
   }
-  // Halt PICC
-  mfrc522.PICC_HaltA();
-  // Stop encryption on PCD prepare to next read
-  mfrc522.PCD_StopCrypto1();
 }
 
 // handle request start/end transaction from hmi 0x18
@@ -254,6 +222,8 @@ void hmiTranControl(uint8_t buffer[8])
   {
     if (getTransaction(buffer[5]))
     {
+      Serial.println(F("end from hmi"));
+      Serial.println(idTag);
       endTransaction(idTag.c_str(), nullptr, buffer[5]);
       sendData(data); // ack
     }
@@ -474,7 +444,6 @@ void OCPP_Server_handle(void *pvParameters)
 {
   for (;;)
   {
-    // wm.process();
     readPICC();
     mocpp_loop();
     vTaskDelay(1);
