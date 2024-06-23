@@ -1,6 +1,5 @@
 import serial
 import time
-import threading
 from datetime import datetime
 
 connectors = [0, 0] # connected or not

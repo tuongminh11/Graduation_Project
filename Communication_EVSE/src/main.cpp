@@ -30,7 +30,7 @@ struct User
 };
 struct User userDB[2] = {{"", 255}, {"", 255}};
 uint8_t isAuth = 0x00;
-String idTag;
+char idTag[16];
 //-----------------------------------------------------------
 
 void OCPP_Server_handle(void *pvParameters);
@@ -144,11 +144,11 @@ void readPICC()
   
   if (!isAuth)
   {
-    idTag = (char *)buffer;
+    memcpy(idTag, buffer, 16);
     // buffer
     uint8_t data[] = {uint8_t(ID_TAG), 0x00, 0x00, 0x00, 0x01};
     // authorize
-    authorize(idTag.c_str(), [](JsonObject payload) -> void
+    authorize(idTag, [](JsonObject payload) -> void
               {
       JsonObject idTagInfo = payload["idTagInfo"];
       if (strcmp("Accepted", idTagInfo["status"] | "UNDEFINED")) { //strcmp == 0 mean equal
@@ -162,7 +162,7 @@ void readPICC()
 
     Serial.println(idTag);
     // check if this is exist user
-    if (strcmp(idTag.c_str(), userDB[0].idTag) == 0)
+    if (strcmp(idTag, userDB[0].idTag) == 0)
     {
       // hanlde
       Serial.print(F("exist user 1, connectID: "));
@@ -171,7 +171,7 @@ void readPICC()
       data[4] = 1;
       sendData(data);
     }
-    else if (strcmp(idTag.c_str(), userDB[1].idTag) == 0)
+    else if (strcmp(idTag, userDB[1].idTag) == 0)
     {
       // hanlde
       Serial.print(F("exist user 2, connectID: "));
@@ -187,7 +187,7 @@ void readPICC()
       {
         // hanlde
         Serial.println(F("new user 1"));
-        memcpy(userDB[0].idTag, idTag.c_str(), idTag.length() + 1);
+        memcpy(userDB[0].idTag, idTag, 16);
         data[3] = userDB[0].connectorID;
         data[4] = 1;
         sendData(data);
@@ -196,7 +196,7 @@ void readPICC()
       {
         // hanlde
         Serial.println(F("new user 2"));
-        memcpy(userDB[1].idTag, idTag.c_str(), idTag.length() + 1);
+        memcpy(userDB[1].idTag, idTag, 16);
         data[3] = userDB[1].connectorID;
         data[4] = 1;
         sendData(data);
@@ -224,7 +224,8 @@ void hmiTranControl(uint8_t buffer[8])
     {
       Serial.println(F("end from hmi"));
       Serial.println(idTag);
-      endTransaction(idTag.c_str(), nullptr, buffer[5]);
+      endTransaction(idTag, nullptr, buffer[5]);
+      Serial.println(F("after end from hmi"));
       sendData(data); // ack
     }
     else
@@ -237,7 +238,7 @@ void hmiTranControl(uint8_t buffer[8])
   {
     if (!getTransaction(buffer[5]))
     {
-      auto ret = beginTransaction(idTag.c_str(), buffer[5]);
+      auto ret = beginTransaction(idTag, buffer[5]);
 
       if (ret)
       {
@@ -264,12 +265,12 @@ void connectorStHandle(uint8_t buffer[8])
     setConnectorPluggedInput([]()
                              { return true; }, buffer[5]);
 
-    if (strcmp(idTag.c_str(), userDB[0].idTag) == 0)
+    if (strcmp(idTag, userDB[0].idTag) == 0)
     {
       Serial.println(F("Connector 1 plugged in"));
       userDB[0].connectorID = buffer[5];
     }
-    else if (strcmp(idTag.c_str(), userDB[1].idTag) == 0)
+    else if (strcmp(idTag, userDB[1].idTag) == 0)
     {
       Serial.println(F("Connector 2 plugged in"));
       userDB[1].connectorID = buffer[5];
@@ -323,7 +324,7 @@ void process(uint8_t buffer[8])
     isAuth = buffer[6];
     if (!isAuth)
     {
-      idTag = ""; // reset current ID tag in station
+      idTag[0] = '\0'; // reset current ID tag in station
       isAuth = 0; // set state no authentication
       if (/*check if have in a transaction*/ !getTransaction(buffer[5]))
       { // clear user db if not in a transaction and have logout signal
