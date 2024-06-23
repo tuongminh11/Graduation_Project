@@ -5,3 +5,4 @@ Code đồ án tốt nghiệp
 - Write_PICC: Viết dữ liệu cho thẻ RFID
 - Test_authorization
 - G474_Master: Code STM32 CIMS
+- testUART.py: code simulation STM32 để test hoạt động của ESP32
