@@ -1,8 +1,10 @@
 #define TRIGGER_PIN 23
 // #define STASSID "IPAC_LAB_Member"
 // #define STAPSK "12345678"
-#define STASSID "W403"
-#define STAPSK "kamekamehahaha"
+// #define STASSID "W403"
+// #define STAPSK "kamekamehahaha"
+#define STASSID "LingLing"
+#define STAPSK "menhmonghoaha"
 //-----------------------------------------------------------
 #define RST 22    // RST pin in ESP32 module 30 pin
 #define SS_PIN 21 // SS  pin

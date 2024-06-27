@@ -33,7 +33,7 @@ def send_frames(ser, file_code, data):
 
 def beginCharge(ser, user_index):
     send_frames(ser, 0x17, [0x00, 0x00, users[user_index], 0x01]) #plug connector
-    connectors[users[user_index]-1] = 1
+    connectors[users[user_index]-1] = 1 #connector
     # send_frames(ser, 0x23, [0x00, 0x00, 0x01, users[user_index]]) #send Current Value Request
     # send_frames(ser, 0x24, [0x00, 0x00, 0x01, users[user_index]]) #send Voltage Value Request 
     # send_frames(ser, 0x25, [0x00, 0x00, 0x01, users[user_index]]) #send InitSoC
@@ -61,6 +61,7 @@ def receive_frames(ser):
                 if(received_frame[2] == 0x15): #idtag
                     EVSE_state()
                     if (received_frame[5] == 255 or status[received_frame[5]-1] == 0):
+                        #đại diện cho rút súng sạc
                         if(users[0] == 255):
                             users[0] = 2
                         elif(users[1] == 255):
