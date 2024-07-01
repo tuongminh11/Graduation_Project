@@ -75,7 +75,7 @@ void MeteringService::loop(){
         auto meterValuesMsg = connectors[i]->loop();
         if (meterValuesMsg != nullptr) {
             auto meterValues = makeRequest(std::move(meterValuesMsg));
-            meterValues->setTimeout(120000);
+            meterValues->setTimeout(6000);
             context.initiateRequest(std::move(meterValues));
         }
     }

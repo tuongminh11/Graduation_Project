@@ -23,7 +23,7 @@ MeteringConnector::MeteringConnector(Model& model, int connectorId, MeterStore& 
     auto meterValuesSampledDataString = declareConfiguration<const char*>("MeterValuesSampledData", "");
     declareConfiguration<int>("MeterValuesSampledDataMaxLength", 8, CONFIGURATION_VOLATILE, true);
     meterValueCacheSizeInt = declareConfiguration<int>(MO_CONFIG_EXT_PREFIX "MeterValueCacheSize", 1);
-    meterValueSampleIntervalInt = declareConfiguration<int>("MeterValueSampleInterval", 60);
+    meterValueSampleIntervalInt = declareConfiguration<int>("MeterValueSampleInterval", 2);
     
     auto stopTxnSampledDataString = declareConfiguration<const char*>("StopTxnSampledData", "");
     declareConfiguration<int>("StopTxnSampledDataMaxLength", 8, CONFIGURATION_VOLATILE, true);
@@ -94,9 +94,9 @@ std::unique_ptr<Operation> MeteringConnector::loop() {
                 dt > clockAlignedDataIntervalInt->getInt()) {   //special case: clock has been adjusted or first run
 
             MO_DBG_DEBUG("Clock aligned measurement %" PRId32 "s: %s", dt,
-                abs(dt) <= 60 ?
-                "in time (tolerance <= 60s)" : "off, e.g. because of first run. Ignore");
-            if (abs(dt) <= 60) { //is measurement still "clock-aligned"?
+                abs(dt) <= 2 ?
+                "in time (tolerance <= 2s)" : "off, e.g. because of first run. Ignore");
+            if (abs(dt) <= 2) { //is measurement still "clock-aligned"?
                 auto alignedMeterValues = alignedDataBuilder->takeSample(model.getClock().now(), ReadingContext::SampleClock);
                 if (alignedMeterValues) {
                     meterData.push_back(std::move(alignedMeterValues));

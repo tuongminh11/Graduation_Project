@@ -21,7 +21,6 @@ TaskHandle_t CIMS;
 // uint8_t plcStatus = 0x00;
 // uint8_t slaveStatus[5];
 uint8_t connectorStatus[2];
-float measure_buffer;
 //-----------------------------------------------------------
 struct User
 {
@@ -31,6 +30,15 @@ struct User
 struct User userDB[2] = {{"", 255}, {"", 255}};
 uint8_t isAuth = 0x00;
 char idTag[16];
+float buf_SoH = 0;
+float buf_SoKM = 0;
+float buf_SoC = 0;
+float buf_InitSoC = 0;
+float buf_InitU = 0;
+float buf_InitI = 0;
+float buf_U = 0;
+float buf_I = 0;
+float buf_SoT = 0;
 //-----------------------------------------------------------
 
 void OCPP_Server_handle(void *pvParameters);
@@ -141,8 +149,8 @@ void readPICC()
   mfrc522.PICC_HaltA();
   // Stop encryption on PCD prepare to next read
   mfrc522.PCD_StopCrypto1();
-  
-  if (!isAuth)
+
+  if (!isAuth && status == MFRC522::STATUS_OK)
   {
     memcpy(idTag, buffer, 16);
     // buffer
@@ -222,28 +230,39 @@ void hmiTranControl(uint8_t buffer[8])
   {
     if (getTransaction(buffer[5]))
     {
-      Serial.println(F("end from hmi"));
-      Serial.println(idTag);
-      endTransaction(idTag, nullptr, buffer[5]);
-      Serial.println(F("after end from hmi"));
-      sendData(data); // ack
-    }
-    else
-    {
-      data[2] = 0xFF;
-      sendData(data); // ack
+      if (endTransaction(idTag, nullptr, buffer[5]))
+      {
+        sendData(data); // ack
+      }
+      else
+      {
+        data[2] = 0xFF;
+        sendData(data); // ack
+      }
     }
   }
   else
   {
     if (!getTransaction(buffer[5]))
     {
+      sendRequest("DataTransfer", [buffer]() -> std::unique_ptr<DynamicJsonDocument>
+                  {
+      auto res = std::unique_ptr<DynamicJsonDocument>(new DynamicJsonDocument(150)); 
+      String mid = "{\"vendorId\":\"EVSE-iPAC-New\",\"messageId\":\"InitValue\",\"data\": \"[" + String(buffer[5]) + "," + String(buf_InitI, 1) + "," + String(buf_SoH, 1) + "," + String(buf_SoC, 1) + "," + String(buf_InitU, 1) + "," + String(buf_InitI, 1) + "," + String(buf_SoKM, 1) + "]\"}";
+      deserializeJson(*res, mid);
+      serializeJson(*res, Serial);
+      Serial.println();
+
+      return res; }, [](JsonObject response) -> void
+                  {
+        if (!strcmp(response["status"], "Accepted")) {
+          Serial.println(F("[main] Server get init value"));
+        } });
       auto ret = beginTransaction(idTag, buffer[5]);
 
       if (ret)
       {
-        Serial.println(F("[main] Transaction initiated. OCPP lib will send a StartTransaction when"
-                         "ConnectorPlugged Input becomes true and if the Authorization succeeds"));
+        Serial.println(F("[main] Transaction begin accepted"));
         data[1] = 0x01;
         sendData(data); // ack
       }
@@ -308,24 +327,27 @@ void process(uint8_t buffer[8])
     break;
   case CURRENT_VALUE:
     data = 0;
-    data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    addMeterValueInput([]()
-                       { return measure_buffer; }, "I", "A", nullptr, nullptr, 1);
+    data = buffer[3] | (buffer[4] << 8) | (buffer[5] << 16);
+    buf_I = float(data);
+    Serial.printf("I: %f\n", buf_I);
+    // addMeterValueInput([]()
+    //                    { return buf_I; }, "Current.Import", "A", nullptr, nullptr, buffer[6]);
     break;
   case VOLT_VALUE:
     data = 0;
-    data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    addMeterValueInput([]()
-                       { return measure_buffer; }, "U", "V", nullptr, nullptr, buffer[6]);
+    data = buffer[3] | (buffer[4] << 8) | (buffer[5] << 16);
+    buf_U = float(data);
+    Serial.printf("U: %f\n", buf_U);
+
+    // addMeterValueInput([]()
+    //                    { return buf_U; }, "Voltage", "V", nullptr, nullptr, buffer[6]);
     break;
   case ID_TAG:
     isAuth = buffer[6];
     if (!isAuth)
     {
       idTag[0] = '\0'; // reset current ID tag in station
-      isAuth = 0; // set state no authentication
+      isAuth = 0;      // set state no authentication
       if (/*check if have in a transaction*/ !getTransaction(buffer[5]))
       { // clear user db if not in a transaction and have logout signal
         if (userDB[0].connectorID == buffer[5])
@@ -349,72 +371,88 @@ void process(uint8_t buffer[8])
   case SOT_SOC_VALUE:
     data = 0;
     data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    strcpy(measurand, "SoC");
-    strcpy(unit, "kWh");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    buf_SoC = float(data);
+    Serial.printf("SoC: %f\n", buf_SoC);
+    // addMeterValueInput([]()
+    //                    { return buf_SoC; }, "SoC", "Percent", nullptr, nullptr, buffer[6]);
     data = 0;
     data = buffer[3];
-    measure_buffer = float(data);
-    strcpy(measurand, "SoT");
-    strcpy(unit, "0C");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    buf_SoT = float(data);
+    Serial.printf("SoT: %f\n", buf_SoT);
+    // addMeterValueInput([]()
+    //                    { return buf_SoT; }, "Temperature", "Celsius", "EV", nullptr, buffer[6]);
+
+    sendRequest("DataTransfer", [buffer]() -> std::unique_ptr<DynamicJsonDocument>
+                {
+      //will be called to create the request once this operation is being sent out
+      auto res = std::unique_ptr<DynamicJsonDocument>(new DynamicJsonDocument(130)); 
+      String mid = "{\"vendorId\":\"EVSE-iPAC-New\",\"messageId\":\"RealValue\",\"data\": \"[" + String(buffer[6]) + "," + String(buf_SoC,1) + "," + String(buf_SoT,1) + "," + String(buf_U,1) + "," + String(buf_I,1) + "," + String(buf_SoKM,1) + "]\"}";
+      deserializeJson(*res, mid);
+      serializeJson(*res, Serial);
+      Serial.println();
+      // request["vendorId"] = "EVSE-iPAC-New";
+      // request["messageId"] = "RealValue";
+      // request["data"][0] = buffer[6];
+      // request["data"][1] = buf_SoC;
+      // request["data"][2] = buf_SoT;
+      // request["data"][3] = buf_U;
+      // request["data"][4] = buf_I;
+      // request["data"][5] = buf_SoKM;
+
+      return res; }, [](JsonObject response) -> void
+                {
+        if (!strcmp(response["status"], "Accepted")) {
+          Serial.println(F("[main] Server get real value"));
+        } });
     break;
   case CURRENT_INIT:
     data = 0;
-    data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    strcpy(measurand, "I_init");
-    strcpy(unit, "A");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    data = buffer[3] | (buffer[4] << 8) | (buffer[5] << 16);
+    buf_InitI = float(data);
+    Serial.printf("II: %f\n", buf_InitI);
+    // addMeterValueInput([]()
+    //                    { return buf_InitI; }, "Current.Offered", "A", nullptr, nullptr, buffer[6]);
+
     break;
   case VOLT_INIT:
     data = 0;
-    data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    strcpy(measurand, "U_init");
-    strcpy(unit, "V");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    data = buffer[3] | (buffer[4] << 8) | (buffer[5] << 16);
+    buf_InitU = float(data);
+    Serial.printf("IU: %f\n", buf_InitU);
+    // addMeterValueInput([]()
+    //                    { return buf_InitU; }, "Voltage", "V", "Cable", nullptr, buffer[6]);
     break;
   case SOC_NEW_INIT:
     data = 0;
     data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    strcpy(measurand, "SoC_new");
-    strcpy(unit, "kWh");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    buf_InitSoC = float(data);
+    Serial.printf("ISoC: %f\n", buf_InitSoC);
+    // addMeterValueInput([]()
+    //                    { return buf_InitSoC; }, "Energy.Active.Import.Register", "kWh", "Cable", nullptr, buffer[6]);
     break;
   case SOC_INIT:
     data = 0;
     data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    strcpy(measurand, "SoC_ini");
-    strcpy(unit, "kWh");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    buf_SoC = float(data);
+    Serial.printf("SoC: %f\n", buf_SoC);
+    // addMeterValueInput([]()
+    //                    { return buf_SoC; }, "SoC", "Percent", nullptr, nullptr, buffer[6]);
     break;
   case SOH_INIT:
     data = 0;
     data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    strcpy(measurand, "SoH");
-    strcpy(unit, "kWh");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    buf_SoH = float(data);
+    Serial.printf("SoH: %f\n", buf_SoH);
+    // addMeterValueInput([]()
+    //                    { return buf_SoH; }, "Energy.Active.Import.Register", "kWh", "EV", nullptr, buffer[6]);
     break;
   case SoKM:
     data = 0;
     data = buffer[4] | (buffer[5] << 8);
-    measure_buffer = float(data);
-    strcpy(measurand, "SoKM");
-    strcpy(unit, "km");
-    addMeterValueInput([]()
-                       { return measure_buffer; }, measurand, unit, nullptr, nullptr, buffer[6]);
+    buf_SoKM = float(data);
+    Serial.printf("SoKM: %f\n", buf_SoKM);
+    // addMeterValueInput([]()
+    //                    { return buf_SoKM; }, "RPM", nullptr, nullptr, nullptr, buffer[6]);
     break;
   default:
     break;

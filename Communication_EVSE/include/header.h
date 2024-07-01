@@ -5,13 +5,17 @@
 // #define STAPSK "kamekamehahaha"
 #define STASSID "LingLing"
 #define STAPSK "menhmonghoaha"
+// #define STASSID "Hoang Dung Land T3"
+// #define STAPSK "123456789@"
+// #define STASSID "TM"
+//#define STAPSK "qpalzm112358"
 //-----------------------------------------------------------
 #define RST 22    // RST pin in ESP32 module 30 pin
 #define SS_PIN 21 // SS  pin
 //-----------------------------------------------------------
 #define OCPP_CHARGE_BOX_ID "esp32-charger-new" // device ID in server, need declare in server before, unique
 // String OCPP_BACKEND_URL;
-#define OCPP_BACKEND_URL "ws://58.186.92.182:34589/steve/websocket/CentralSystemService/" // URL
+#define OCPP_BACKEND_URL "ws://183.80.8.132:34589/steve/websocket/CentralSystemService/" // URL
 //-----------------------------------------------------------
 /**
  * Frame structure
