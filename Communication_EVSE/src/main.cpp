@@ -46,48 +46,6 @@ void CIMS_handle(void *pvParameters);
 void sendData(uint8_t data[5]);
 void setup()
 {
-  // Note the format for setting a serial port is as follows: Serial2.begin(baud-rate, protocol, RX pin, TX pin);
-  Serial.begin(115200);
-  Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
-  Serial.print(F("[main] Wait for WiFi: "));
-
-  // init RFID reader
-  for (byte i = 0; i < 6; i++)
-  {
-    key.keyByte[i] = 0xFF;
-  }
-  SPI.begin();                       // Init SPI bus
-  mfrc522.PCD_Init();                // Init MFRC522 (PCD is terminology)
-  mfrc522.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
-
-  // wait for WiFi connection
-  WiFi.begin(STASSID, STAPSK);
-  while (!WiFi.isConnected())
-  {
-    Serial.print('.');
-    delay(1000);
-  }
-  Serial.println(F("Connected!"));
-  // init and config OCPP
-  mocpp_initialize(OCPP_BACKEND_URL, OCPP_CHARGE_BOX_ID, "Wallnut Charging Station New", "EVSE-iPAC-New");
-
-  // handle json object confirm from EVSE to server
-  setOnSendConf("RemoteStopTransaction", [](JsonObject payload) -> void
-                {
-    int connectorID = payload["connectorId"];
-    if (!strcmp(payload["status"], "Accepted")) { //send to CIMS
-      uint8_t data[] = {END_TRANSACTION, 0x00, 0x00, 0x00, (uint8_t) connectorID};
-      sendData(data);
-    } });
-
-  setOnSendConf("RemoteStartTransaction", [](JsonObject payload) -> void
-                {
-    int connectorID = payload["connectorId"];
-    if (!strcmp(payload["status"], "Accepted")) { //send to CIMS
-      uint8_t data[] = {BEGIN_TRANSACTION, 0x00, 0x00, 0x00, (uint8_t) connectorID};
-      sendData(data);
-    } });
-
   xTaskCreatePinnedToCore(
       OCPP_Server_handle, /* Task function. */
       "OCPP_Server",      /* name of task. */
@@ -481,6 +439,45 @@ void sendData(uint8_t data[5])
 
 void OCPP_Server_handle(void *pvParameters)
 {
+  Serial.begin(115200);
+    // init RFID reader
+  for (byte i = 0; i < 6; i++)
+  {
+    key.keyByte[i] = 0xFF;
+  }
+  SPI.begin();                       // Init SPI bus
+  mfrc522.PCD_Init();                // Init MFRC522 (PCD is terminology)
+  mfrc522.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
+    // wait for WiFi connection
+  Serial.print(F("[main] Wait for WiFi: "));
+
+  WiFi.begin(STASSID, STAPSK);
+
+  while (!WiFi.isConnected())
+  {
+    Serial.print('.');
+    delay(1000);
+  }
+  Serial.println(F("Connected!"));
+  // init and config OCPP
+  mocpp_initialize(OCPP_BACKEND_URL, OCPP_CHARGE_BOX_ID, "Wallnut Charging Station New", "EVSE-iPAC-New");
+
+  // handle json object confirm from EVSE to server
+  setOnSendConf("RemoteStopTransaction", [](JsonObject payload) -> void
+                {
+    int connectorID = payload["connectorId"];
+    if (!strcmp(payload["status"], "Accepted")) { //send to CIMS
+      uint8_t data[] = {END_TRANSACTION, 0x00, 0x00, 0x00, (uint8_t) connectorID};
+      sendData(data);
+    } });
+
+  setOnSendConf("RemoteStartTransaction", [](JsonObject payload) -> void
+                {
+    int connectorID = payload["connectorId"];
+    if (!strcmp(payload["status"], "Accepted")) { //send to CIMS
+      uint8_t data[] = {BEGIN_TRANSACTION, 0x00, 0x00, 0x00, (uint8_t) connectorID};
+      sendData(data);
+    } });
   for (;;)
   {
     readPICC();
@@ -491,6 +488,9 @@ void OCPP_Server_handle(void *pvParameters)
 
 void CIMS_handle(void *pvParameters)
 {
+    // Note the format for setting a serial port is as follows: Serial2.begin(baud-rate, protocol, RX pin, TX pin);
+  Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
+
   uint8_t uartData = 0;
   uint8_t buffer[8] = {};
   uint8_t count = 0;

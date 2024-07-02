@@ -143,21 +143,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-#Backtrace: 0x4008bcb7:0x3ffd88b0 0x400d68e5:0x3ffd88c0 0x400d3911:0x3ffd88e0 0x400d3b35:0x3ffd8910 0x400d3eee:0x3ffd8960
-  #0  0x4008bcb7 in strcmp at /builds/idf/crosstool-NG/.build/HOST-x86_64-w64-mingw32/xtensa-esp32-elf/src/newlib/newlib/libc/machine/xtensa/strcmp.S:470
-  #1  0x400d68e5 in endTransaction(char const*, char const*, unsigned int) at .pio/libdeps/nodemcu-32s/MicroOcpp/src/MicroOcpp.cpp:383 (discriminator 2)
-  #2  0x400d3911 in hmiTranControl(unsigned char*) at src/main.cpp:231
-  #3  0x400d3b35 in process(unsigned char*) at src/main.cpp:310
-  #4  0x400d3eee in CIMS_handle(void*) at src/main.cpp:515
-
-
-
-# SoH = 99 # Energy.Active.Import.Register # kWh # EV
-# SoKM = 345 # RPM # #
-# SoC = 20 # SoC # Percent #
-# InitSoC = 20 # Energy.Active.Import.Register # kWh # Cable
-# InitU = 500 # Voltage # V # Cable 
-# InitI = 20 # Current.Offered # A #
-# U = 500 # Voltage # V #
-# I = 30 # Current.Import # A #
-# SoT = 0 # Temperature # Celsius # EV

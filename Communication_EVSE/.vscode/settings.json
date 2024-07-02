@@ -290,6 +290,17 @@
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
-    "new": "cpp"
+    "new": "cpp",
+    "array": "cpp",
+    "*.tcc": "cpp",
+    "deque": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "unordered_set": "cpp",
+    "vector": "cpp",
+    "string_view": "cpp",
+    "memory": "cpp",
+    "random": "cpp",
+    "initializer_list": "cpp"
   }
 }
