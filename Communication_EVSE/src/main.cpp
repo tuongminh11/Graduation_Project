@@ -5,8 +5,6 @@
 #include <MFRC522.h>   // RC522 module
 #include "header.h"
 //-----------------------------------------------------------
-
-//-----------------------------------------------------------
 MFRC522 mfrc522(SS_PIN, RST); // class RFID reader
 MFRC522::MIFARE_Key key;
 //-----------------------------------------------------------
@@ -21,7 +19,6 @@ TaskHandle_t CIMS;
 // uint8_t plcStatus = 0x00;
 // uint8_t slaveStatus[5];
 uint8_t connectorStatus[2];
-//-----------------------------------------------------------
 struct User
 {
   char idTag[IDTAG_LEN_MAX + 1];
@@ -206,7 +203,7 @@ void hmiTranControl(uint8_t buffer[8])
       sendRequest("DataTransfer", [buffer]() -> std::unique_ptr<DynamicJsonDocument>
                   {
       auto res = std::unique_ptr<DynamicJsonDocument>(new DynamicJsonDocument(150)); 
-      String mid = "{\"vendorId\":\"EVSE-iPAC-New\",\"messageId\":\"InitValue\",\"data\": \"[" + String(buffer[5]) + "," + String(buf_InitI, 1) + "," + String(buf_SoH, 1) + "," + String(buf_SoC, 1) + "," + String(buf_InitU, 1) + "," + String(buf_InitI, 1) + "," + String(buf_SoKM, 1) + "]\"}";
+      String mid = "{\"vendorId\":\"EVSE-iPAC-New\",\"messageId\":\"InitValue\",\"data\": \"[" + String(buffer[5]) + "," + String(buf_InitSoC, 1) + "," + String(buf_SoH, 1) + "," + String(buf_SoC, 1) + "," + String(buf_InitU, 1) + "," + String(buf_InitI, 1) + "," + String(buf_SoKM, 1) + "]\"}";
       deserializeJson(*res, mid);
       serializeJson(*res, Serial);
       Serial.println();
@@ -288,17 +285,12 @@ void process(uint8_t buffer[8])
     data = buffer[3] | (buffer[4] << 8) | (buffer[5] << 16);
     buf_I = float(data);
     Serial.printf("I: %f\n", buf_I);
-    // addMeterValueInput([]()
-    //                    { return buf_I; }, "Current.Import", "A", nullptr, nullptr, buffer[6]);
     break;
   case VOLT_VALUE:
     data = 0;
     data = buffer[3] | (buffer[4] << 8) | (buffer[5] << 16);
     buf_U = float(data);
     Serial.printf("U: %f\n", buf_U);
-
-    // addMeterValueInput([]()
-    //                    { return buf_U; }, "Voltage", "V", nullptr, nullptr, buffer[6]);
     break;
   case ID_TAG:
     isAuth = buffer[6];
@@ -331,14 +323,10 @@ void process(uint8_t buffer[8])
     data = buffer[4] | (buffer[5] << 8);
     buf_SoC = float(data);
     Serial.printf("SoC: %f\n", buf_SoC);
-    // addMeterValueInput([]()
-    //                    { return buf_SoC; }, "SoC", "Percent", nullptr, nullptr, buffer[6]);
     data = 0;
     data = buffer[3];
     buf_SoT = float(data);
     Serial.printf("SoT: %f\n", buf_SoT);
-    // addMeterValueInput([]()
-    //                    { return buf_SoT; }, "Temperature", "Celsius", "EV", nullptr, buffer[6]);
 
     sendRequest("DataTransfer", [buffer]() -> std::unique_ptr<DynamicJsonDocument>
                 {
@@ -348,14 +336,6 @@ void process(uint8_t buffer[8])
       deserializeJson(*res, mid);
       serializeJson(*res, Serial);
       Serial.println();
-      // request["vendorId"] = "EVSE-iPAC-New";
-      // request["messageId"] = "RealValue";
-      // request["data"][0] = buffer[6];
-      // request["data"][1] = buf_SoC;
-      // request["data"][2] = buf_SoT;
-      // request["data"][3] = buf_U;
-      // request["data"][4] = buf_I;
-      // request["data"][5] = buf_SoKM;
 
       return res; }, [](JsonObject response) -> void
                 {

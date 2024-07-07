@@ -55,7 +55,6 @@ def beginCharge(ser, user_index):
     send_frames(ser, 0x18, [0x00, 0x00, c_id, 0x01]) #send start transaction    
     time.sleep(2)  # Thời gian nghỉ giữa các frame
 
-
 def inCharge(ser, connector):
     send_frames(ser, 0x20, [0x3C, 0x00, 0x00, connector]) #send Current Value On Charge
     send_frames(ser, 0x21, [0x58, 0x02, 0x00, connector]) #send Voltage Value On Charge
@@ -127,7 +126,7 @@ def receive_frames(ser):
 
 def main():
     # Thay đổi tên cổng COM cho phù hợp với hệ thống của bạn
-    port = 'COM6'  # Hoặc COMx trên Windows, ví dụ: 'COM3'
+    port = 'COM8'  # Hoặc COMx trên Windows, ví dụ: 'COM3'
     baudrate = 115200
 
     ser = serial.Serial(port, baudrate, timeout=1)
