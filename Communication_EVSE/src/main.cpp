@@ -185,6 +185,16 @@ void hmiTranControl(uint8_t buffer[8])
   {
     if (getTransaction(buffer[5]))
     {
+      // memcpy(userDB[1].idTag, idTag, 16);
+      if (userDB[0].connectorID == buffer[5])
+      {
+        memcpy(idTag, userDB[0].idTag, 16);
+      }
+      else if (userDB[0].connectorID == buffer[5])
+      {
+        memcpy(idTag, userDB[1].idTag, 16);
+      }
+
       if (endTransaction(idTag, nullptr, buffer[5]))
       {
         sendData(data); // ack
@@ -194,6 +204,7 @@ void hmiTranControl(uint8_t buffer[8])
         data[2] = 0xFF;
         sendData(data); // ack
       }
+      Serial.println(F("Logout"));
     }
   }
   else
@@ -420,7 +431,7 @@ void sendData(uint8_t data[5])
 void OCPP_Server_handle(void *pvParameters)
 {
   Serial.begin(115200);
-    // init RFID reader
+  // init RFID reader
   for (byte i = 0; i < 6; i++)
   {
     key.keyByte[i] = 0xFF;
@@ -428,7 +439,7 @@ void OCPP_Server_handle(void *pvParameters)
   SPI.begin();                       // Init SPI bus
   mfrc522.PCD_Init();                // Init MFRC522 (PCD is terminology)
   mfrc522.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
-    // wait for WiFi connection
+                                     // wait for WiFi connection
   Serial.print(F("[main] Wait for WiFi: "));
 
   WiFi.begin(STASSID, STAPSK);
@@ -468,7 +479,7 @@ void OCPP_Server_handle(void *pvParameters)
 
 void CIMS_handle(void *pvParameters)
 {
-    // Note the format for setting a serial port is as follows: Serial2.begin(baud-rate, protocol, RX pin, TX pin);
+  // Note the format for setting a serial port is as follows: Serial2.begin(baud-rate, protocol, RX pin, TX pin);
   Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
 
   uint8_t uartData = 0;

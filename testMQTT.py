@@ -11,7 +11,7 @@ MQTT_PORT = 8083
 MQTT_KEEPALIVE_INTERVAL = 60
 
 # MQTT Topics
-USER_NAME = "a"
+USER_NAME = "kieubaduy"
 TOPIC_HEAD = "evse_service/" + USER_NAME
 TOPIC_BATTERY_INFO = TOPIC_HEAD + "1/SoH" 
 TOPIC_CHARGING_INFO = TOPIC_HEAD + "1/ChargingInfo"
@@ -54,7 +54,7 @@ def publish(topic, message):
     client.publish(topic, json.dumps(message))
     print(f"Published to {topic}: {message}")
 
-# global
+# global sửa chô này
 SoH = 90
 SoC = 30
 InitSoC = 100
@@ -90,24 +90,29 @@ if __name__ == "__main__":
     client.loop_start()
     try:
         while True:
-            beginLoop = bool(input())
+            beginLoop = int(input())
 
-            if beginLoop:
+            if beginLoop == 1:
                 print("begin simulation")
                 publish(TOPIC_CONNECT_GUN, {"EVSE_connector": bool(1)})
-                time.sleep(2) 
-                
+                time.sleep(2) # sửa time stamp này
+
+            elif beginLoop == 2:    
                 gen_inti_data()
                 time.sleep(2) 
 
+            elif beginLoop == 3: 
                 publish(TOPIC_START_CHARGE, {"EVSE_charging": True})
                 time.sleep(2) 
+
+            elif beginLoop == 4: 
                 while True:
                     if SoC + 10 > SoH:
                         SoC = SoH
                         SoKM = 300 * (SoC/InitSoC)
                         generate_fake_data()
-
+                        
+                        #reset var
                         SoH = 90
                         SoC = 30
                         InitSoC = 100
@@ -122,6 +127,7 @@ if __name__ == "__main__":
                         generate_fake_data()
                         time.sleep(2)  
 
+            elif beginLoop == 5: 
                 publish(TOPIC_START_CHARGE, {"EVSE_charging": bool(0)})
                 publish(TOPIC_CONNECT_GUN, {"EVSE_connector": bool(0)})
                 time.sleep(2) 
