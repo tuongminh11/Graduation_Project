@@ -55,11 +55,11 @@ def publish(topic, message):
     print(f"Published to {topic}: {message}")
 
 # global sửa chô này
-SoH = 90
-SoC = 30
-InitSoC = 100
-InitU = 600
-InitI = 20
+SoH = 100
+SoC = 9
+InitSoC = 109
+InitU = 0
+InitI = 0
 U = randint(570, 600)
 I = randint(18, 25)
 SoT = randint(40, 50)
