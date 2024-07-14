@@ -1,0 +1,15 @@
+../Libraries/QCA7000.c:33:10:SPI_QCA7000_Read_Signature	1
+../Libraries/QCA7000.c:54:10:SPI_QCA7000_Read_WRBUF_SPC_AVA	1
+../Libraries/QCA7000.c:75:10:SPI_QCA7000_Read_RDBUF_SPC_AVA	1
+../Libraries/QCA7000.c:96:6:SPI_QCA7000_Write_BFR_SIZE	1
+../Libraries/QCA7000.c:107:6:SPI_QCA7000_Disable_REG_INTR_DISABLE	1
+../Libraries/QCA7000.c:121:6:SPI_QCA7000_Enable_REG_INTR_ENABLE	1
+../Libraries/QCA7000.c:135:10:SPI_QCA7000_Read_REG_INTR_CAUSE	7
+../Libraries/QCA7000.c:182:6:SPI_QCA7000_Confirm_REG_INTR_CAUSE	1
+../Libraries/QCA7000.c:193:6:SPI_QCA7000_Reset_Config	1
+../Libraries/QCA7000.c:207:6:SPI_QCA7000_Write_Config	1
+../Libraries/QCA7000.c:221:6:SPI_QCA7000_Init_Setup	2
+../Libraries/QCA7000.c:229:6:SPI_QCA7000_Check_Rx_Data	7
+../Libraries/QCA7000.c:319:6:SPI_QCA7000_Send_Eth_Frame	1
+../Libraries/QCA7000.c:346:6:SPI_QCA7000_Read_Eth_Frame	3
+../Libraries/QCA7000.c:374:6:SPI_QCA7000_Handling_Intr	1
