@@ -41,6 +41,12 @@ extern void ESP_Send(void);
 #define TYPE_TRANSACTION_CONFIRM 0X1A
 #define TYPE_CURRENT_VALUE 0X20
 #define TYPE_VOLTAGE_VALUE 0X21
+#define TYPE_SOT_SOC 0x22
+#define TYPE_INIT_SOC 0x25
+#define TYPE_SOC 0x26
+#define TYPE_SOH 0x27
+#define TYPE_SOKM 0x28
+#define TYPE_CHARGING_TIME 0x29
 
 #define TIMEOUT_100 100
 

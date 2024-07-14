@@ -53,8 +53,9 @@ typedef struct evse_parameter{
 typedef struct ev_parameter{
 	uint8_t control_protocol_number;
 	uint8_t rate_capacity_battery;
-	uint8_t current_battery;
-	uint16_t max_battery_voltage;
+	uint16_t init_battery;
+	uint16_t current_battery;
+	uint16_t max_battery;
 	uint16_t max_charging_time;
 	uint16_t target_battery_voltage;
 	uint8_t vehicle_charging_enabled;

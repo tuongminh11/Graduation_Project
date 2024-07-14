@@ -68,6 +68,8 @@ void Error_Handler(void);
 #define CP_SELECT_GPIO_Port GPIOC
 #define LED1_Pin GPIO_PIN_5
 #define LED1_GPIO_Port GPIOA
+#define EV_Charge_Pin GPIO_PIN_4
+#define EV_Charge_GPIO_Port GPIOC
 #define QCA_INT_Pin GPIO_PIN_1
 #define QCA_INT_GPIO_Port GPIOB
 #define QCA_INT_EXTI_IRQn EXTI1_IRQn

@@ -24,41 +24,78 @@ hmi_data myHMI;
 void HMI_Compose_Pre_Charge_Parm(uint8_t type, uint16_t value){
 	switch(type){
 	case HMI_COMPATIBLE:
-		if(value == 0x00AA) sprintf(hmi_buffer,"com.txt=\"Compatible\"");
-		else sprintf(hmi_buffer,"com.txt=\"Incompatible\"");
+		if(value == 0x00AA) sprintf(hmi_buffer,"com.val=\"Compatible\"");
+		else sprintf(hmi_buffer,"com.val=\"Incompatible\"");
 		break;
-	case HMI_BATTERY_CAPACITY:
-		sprintf(hmi_buffer,"bat.val=%u", value);
+	case HMI_InitSoC:
+		sprintf(hmi_buffer,"InitSoC1.val=%u", value);
 		break;
-	case HMI_CURRENT_BATTERY:
-		sprintf(hmi_buffer,"Interface.bat.val=%u", value);
+	case HMI_SoC:
+		sprintf(hmi_buffer,"SoC1.val=%u", value);
 		break;
-	case HMI_BATTERY_VOLTAGE:
-		sprintf(hmi_buffer,"vbatt.txt=\"%u V\"", value);
+	case HMI_SoH:
+		sprintf(hmi_buffer,"SoH1.val=%u", value);
 		break;
-	case HMI_CHARGING_TIME:
-		sprintf(hmi_buffer,"time.txt=\"%u mins\"", value);
+	case HMI_CHARGING_TIME_MIN:
+		sprintf(hmi_buffer,"min1.val=%u", value);
+		break;
+	case HMI_CHARGING_TIME_HOUR:
+		sprintf(hmi_buffer,"hour1.val=%u", value);
 		break;
 	case HMI_CAR_MODEL:
-		sprintf(hmi_buffer,"model.txt=\"Ioniq 5\"");
+		sprintf(hmi_buffer,"model.val=\"Ioniq 5\"");
+		break;
+
+	//
+	case HMI_InitSoC2:
+		sprintf(hmi_buffer,"InitSoC2.val=%u", value);
+		break;
+	case HMI_SoC2:
+		sprintf(hmi_buffer,"SoC2.val=%u", value);
+		break;
+	case HMI_SoH2:
+		sprintf(hmi_buffer,"SoH2.val=%u", value);
+		break;
+	case HMI_CHARGING_TIME_MIN2:
+		sprintf(hmi_buffer,"min2.val=%u", value);
+		break;
+	case HMI_CHARGING_TIME_HOUR2:
+		sprintf(hmi_buffer,"hour2.val=%u", value);
 		break;
 	}
 }
 
 void HMI_Compose_Realtime_Data(uint8_t type, uint16_t value){
-	value = value*10;
 	switch(type){
+	case HMI_TRAN_STATUS1:
+		sprintf(hmi_buffer,"Authorize.plug_s1.val=%u", value);
+		break;
+	case HMI_TRAN_STATUS2:
+		sprintf(hmi_buffer,"Authorize.plug_s2.val=%u", value);
+		break;
+	case HMI_VOLTAGE2:
+		sprintf(hmi_buffer,"v2.val=%u", value);
+		break;
+	case HMI_CURRENT2:
+		sprintf(hmi_buffer,"i2.val=%u", value);
+		break;
+	case HMI_TEMP2:
+		sprintf(hmi_buffer,"t2.val=%u", value);
+		break;
 	case HMI_VOLTAGE:
-		sprintf(hmi_buffer,"v.val=%u", value);
+		sprintf(hmi_buffer,"v1.val=%u", value);
 		break;
 	case HMI_CURRENT:
-		sprintf(hmi_buffer,"i.val=%u", value);
+		sprintf(hmi_buffer,"i1.val=%u", value);
 		break;
 	case HMI_TEMP:
-		sprintf(hmi_buffer,"t.val=%u", value);
+		sprintf(hmi_buffer,"t1.val=%u", value);
 		break;
 	case HMI_IREF:
 		sprintf(hmi_buffer,"iref.val=%u", value);
+		break;
+	case HMI_SoC:
+		sprintf(hmi_buffer,"SoC1.val=%u", value);
 		break;
 	}
 }
@@ -72,7 +109,10 @@ void HMI_Compose_Status(uint8_t status){
 		sprintf(hmi_buffer,"bug.val=0");
 		break;
 	case HMI_CONNECT:
-		sprintf(hmi_buffer,"state.txt=\"Connected\"");
+		sprintf(hmi_buffer,"state1.txt=\"Connected\"");
+		break;
+	case HMI_CONNECT2:
+		sprintf(hmi_buffer,"state2.txt=\"Connected\"");
 		break;
 	case HMI_READY:
 		sprintf(hmi_buffer,"state.txt=\"Ready\"");

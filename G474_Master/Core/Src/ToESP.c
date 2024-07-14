@@ -9,7 +9,6 @@
 
 
 DATA_TO_ESP ESP_Data;
-
 uint8_t ESP_Payload[8];
 
 void Packet_to_ESP(uint8_t type, uint8_t state)
@@ -51,6 +50,27 @@ void Packet_to_ESP(uint8_t type, uint8_t state)
 		ESP_Payload[4]=(uint8_t)((ESP_Data.ESP_Data_current>>8) & 0xFF);
 		ESP_Payload[6]=1;
 	}
+	else if(ESP_Data.type_ESP_Data==TYPE_SOC)
+	{
+		ESP_Payload[3]=0x00;
+		ESP_Payload[4]=0x10;
+		ESP_Payload[5]=0x00;
+		ESP_Payload[6]=1;
+	}
+	else if(ESP_Data.type_ESP_Data==TYPE_SOH)
+	{
+		ESP_Payload[3]=0x00;
+		ESP_Payload[4]=0x50;
+		ESP_Payload[5]=0x00;
+		ESP_Payload[6]=1;
+	}
+//	else if(ESP_Data.type_ESP_Data==TYPE_CHARGING_TIME)
+//	{
+//		ESP_Payload[3]=0x00;
+//		ESP_Payload[4]=(uint8_t)((myEV.max_charging_time) & 0xFF);
+//		ESP_Payload[5]=(uint8_t)((myEV.max_charging_time>>8) & 0xFF);
+//		ESP_Payload[6]=1;
+//	}
 	ESP_Payload[7]=ESP_Payload[0]+ESP_Payload[1]+ESP_Payload[2]+ESP_Payload[3]+ESP_Payload[4]+ESP_Payload[5]+ESP_Payload[6];
 	ESP_Send();
 }
